@@ -1,31 +1,34 @@
-import mongoose, { Schema, type Document} from "mongoose";
+import mongoose, { Schema, type Document } from "mongoose";
 
 export interface IChat extends Document {
-    participants: mongoose.Types.ObjectId,
-    lastMessage?: mongoose.Types.ObjectId,
-    lastMessageAt?: mongoose.Types.ObjectId,
-    createdAt: Date,
-    updatedAt: Date
+  // not sure should I give here [] or not
+  participants: mongoose.Types.ObjectId[];
+  lastMessage?: mongoose.Types.ObjectId;
+  lastMessageAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const ChatSchema = new Schema<IChat>({
+const ChatSchema = new Schema<IChat>(
+  {
     participants: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true
-        }
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
     ],
     lastMessage: {
-        type: Schema.Types.ObjectId,
-        ref: "Message",
-        defaul: null
+      type: Schema.Types.ObjectId,
+      ref: "Message",
+      defaul: null,
     },
     lastMessageAt: {
-        type: Date,
-        default: Date.now
+      type: Date,
+      default: Date.now,
     },
-
-}, {timestamps: true})
+  },
+  { timestamps: true },
+);
 
 export const Chat = mongoose.model("Chat", ChatSchema);
