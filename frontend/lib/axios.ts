@@ -1,7 +1,6 @@
-import { useEffect } from "react";
-
 import axios from "axios";
 import { useAuth } from "@clerk/clerk-expo";
+import { useCallback } from "react";
 
 // http://localhost:3000
 
@@ -14,25 +13,34 @@ const api = axios.create({
   },
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      console.error(error.response);
+    } else if (error.request) {
+      console.error(error.request);
+    }
+    return Promise.reject(error);
+  },
+);
+
 export const useApi = () => {
   const { getToken } = useAuth();
 
-  useEffect(() => {
-    const requestInterceptor = api.interceptors.request.use(async (config) => {
+  const apiWithAuth = useCallback(
+    async <T>(config: Parameters<typeof api.request>[0]) => {
       const token = await getToken();
+      return api.request<T>({
+        ...config,
+        headers: {
+          ...config.headers,
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
+    },
+    [getToken],
+  );
 
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-
-      return config;
-    });
-
-    //   cleanup: remove interceptors when components unmounts.
-    return () => {
-      api.interceptors.request.eject(requestInterceptor);
-    };
-  }, [getToken]);
-
-  return api;
+  return { api, apiWithAuth };
 };
